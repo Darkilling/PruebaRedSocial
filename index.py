@@ -90,6 +90,22 @@ class MyHandler(BaseHTTPRequestHandler):
             fecha_creacion = parsed_data['fecha_creacion'][0]
             controlador.update_user(id, nombre, email, password, fecha_creacion)
 
+        elif path == "/login":
+            email = parsed_data['email'][0]
+            password = parsed_data['password'][0]
+            
+            if controlador.authenticate_user(email, password):
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(b"Login successful")
+            else:
+                self.send_response(401)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(b"Login failed")
+
+
         self.send_response(303)
         self.send_header('Location', '/')
         self.end_headers()

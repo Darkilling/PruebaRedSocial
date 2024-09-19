@@ -23,3 +23,9 @@ class UsuarioController:
                 usuario.fecha_creacion = fecha_creacion
                 return True
         return False
+    
+    def authenticate_user(self, email, password):
+        for usuario in self.usuarios:
+            if usuario.email == email and usuario.password == password:
+                return True
+        return False

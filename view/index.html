@@ -30,6 +30,20 @@
 
             <input type="submit" value="Agregar Usuario">
         </form>
+
+        <h2>Login</h2>
+    <form method="POST" action="/login">
+        <label for="login_email">Email:</label><br>
+        <input type="text" id="login_email" name="email"><br>
+
+        <label for="login_password">Contraseña:</label><br>
+        <input type="password" id="login_password" name="password"><br><br>
+
+        <input type="submit" value="Login">
+    </form>
+    <div id="mensaje">
+        {{mensaje}}
+    </div>
     
     
 </body>
