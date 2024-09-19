@@ -6,13 +6,15 @@ from controller.user_controller import UserControlador
 UserControlador = UserControlador() #Creamos Obejto controlador de cliente
 
 class MyHandler(BaseHTTPRequestHandler):
-
     def render_template(self, template_name, context):
-        with open(f'view/{template_name}', 'r', encoding='utf-8') as file:
-            html_content = file.read()
-            for key, value in context.items():
-                html_content = html_content.replace(f"{{{{{key}}}}}", value)
-            return html_content
+        try:
+            with open(f'view/{template_name}', 'r', encoding='utf-8') as file:
+                template = file.read()
+            # Aquí puedes agregar lógica para reemplazar variables en el template con valores del contexto
+            return template
+        except FileNotFoundError:
+            self.send_error(404, f"File {template_name} not found")
+            return None
 
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
@@ -48,9 +50,9 @@ class MyHandler(BaseHTTPRequestHandler):
         elif path == "/update":
             query = urllib.parse.parse_qs(parsed_path.query)
             id = int(query['id'][0])
-            user = next((u for u in UserControlador.get_client() if u.id == id ), None)
+            user = next((u for u in UserControlador.get_user() if u.id == id ), None)
             #id,nombre,email,telefono,direccion,apellido,rut
-            if client:
+            if user:
                 self.send_response(200)
                 self.send_header('content-type', 'text/html')
                 self.end_headers()
@@ -59,8 +61,8 @@ class MyHandler(BaseHTTPRequestHandler):
                     'user_id': str(user.id),
                     'user_name': user.nombre,
                     'user_email': user.email,
-                    'user_apell': user.password,
-                    'user_fecha': user.fecha_creacion
+                    'user_password': user.password,
+                    'user_fecha_creacion': user.fecha_creacion
                 })
 
                 self.wfile.write(html_content.encode())
@@ -90,27 +92,21 @@ class MyHandler(BaseHTTPRequestHandler):
         #id,nombre,email,telefono,direccion,apellido,rut
 
         if path == "/":
-            id = len(clienteControlador.get_client())
+            id = len(UserControlador.get_user())
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
-            telefono = parsed_data['telefono'][0]
-            direccion = parsed_data['direccion'][0]
-            apellido = parsed_data['apellido'][0]
-            rut = parsed_data['rut'][0]
 
-            clienteControlador.add_client(id +1, nombre, email, telefono, direccion, apellido, rut)
-            print(clienteControlador.get_client())
+            UserControlador.add_user(id +1, nombre, email, password, fecha_creacion)
+            print(UserControlador.get_user())
 
         elif path == "/update":
             id = int(parsed_data['id'][0])
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
-            telefono = parsed_data['telefono'][0]
-            direccion = parsed_data['direccion'][0]
-            apellido = parsed_data['apellido'][0]
-            rut = parsed_data['rut'][0]
+            password = parsed_data['password'][0]
+            fecha_creacion = parsed_data['fecha_creacion'][0]
 
-            clienteControlador.update_client(id, nombre, email,telefono, direccion, apellido, rut)
+            UserControlador.update_user(id, nombre, email, password, fecha_creacion)
 
         self.send_response(303)
         self.send_header('Location', '/')

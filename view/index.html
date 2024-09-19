@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Social</title>
+
+</head>
+<body>
+    <h1>Lista de Usuarios</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{Usuarios}}
+            </tbody>
+        </table>
+
+        <h2>Agregar Usuarios</h2>
+        <form method="POST" action="/">
+    
+            <label for="nombre">  Nombre: </label><br>
+            <input type="text" id="nombre" name="nombre"><br>     
+
+            <label for="email">  Email: </label><br>
+            <input type="text" id="email" name="email"><br><br>
+
+            <label for="password">  Contraseña: </label><br>
+            <input type="text" id="password" name="password"><br><br>
+                           
+
+            <input type="submit" value="Agregar Usuario">
+        </form>
+    
+    
+</body>
+</html>

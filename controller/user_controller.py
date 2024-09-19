@@ -15,8 +15,8 @@ class UserControlador:
                         print(f"Este cliente ya está en la lista", usuarios.id, usuarios.nombre, usuarios.email, usuarios.password, usuarios.fecha_creacion)
             return False
                 
-        usuarios = user(id, nombre, email, password, fecha_creacion)
-        self.usuarios.append(user)
+        usuarios = Usuario(id, nombre, email, password, fecha_creacion)
+        self.usuarios.append(Usuario)
         return True
             
     def delete_user(self, id):
