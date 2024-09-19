@@ -26,7 +26,7 @@ class MyHandler(BaseHTTPRequestHandler):
             lista_usuarios = "".join(
                 f"<li>{usuario.id} {usuario.nombre} {usuario.email}"
                 f"<a href='/delete?id={usuario.id}'> Eliminar </a> "
-                f"<a href='/update?id={usuario.id}'> Actualizar </a> </li>"
+                f"<a href='/updateUsuario?id={usuario.id}'> Actualizar </a> </li>"
                 for usuario in usuarios
             )
 
@@ -58,7 +58,8 @@ class MyHandler(BaseHTTPRequestHandler):
                 html_content = self.render_template('update.html', {
                     'usuario_id': str(usuario.id),
                     'usuario_name': usuario.nombre,
-                    'usuario_email': usuario.email
+                    'usuario_email': usuario.email,
+                    'usuario_password': usuario.password
                 })
                 self.wfile.write(html_content.encode('utf-8'))
             else:
@@ -87,7 +88,6 @@ class MyHandler(BaseHTTPRequestHandler):
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
             password = parsed_data['password'][0]
-            fecha_creacion = parsed_data['fecha_creacion'][0]
             controlador.update_user(id, nombre, email, password, fecha_creacion)
 
         elif path == "/login":
