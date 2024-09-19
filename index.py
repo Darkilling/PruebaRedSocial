@@ -3,7 +3,7 @@ import os
 import urllib.parse
 from controller.user_controller import UserControlador
 
-clienteControlador = UserControlador() #Creamos Obejto controlador de cliente
+UserControlador = UserControlador() #Creamos Obejto controlador de cliente
 
 class MyHandler(BaseHTTPRequestHandler):
 
