@@ -1,20 +1,17 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import urllib.parse
-from controller.user_controller import UserControlador
+from controller.user_controller import UsuarioController
 
-UserControlador = UserControlador() #Creamos Obejto controlador de cliente
+controlador = UsuarioController()  # Creamos Objeto controlador de usuario
 
 class MyHandler(BaseHTTPRequestHandler):
     def render_template(self, template_name, context):
-        try:
-            with open(f'view/{template_name}', 'r', encoding='utf-8') as file:
-                template = file.read()
-            # Aquí puedes agregar lógica para reemplazar variables en el template con valores del contexto
-            return template
-        except FileNotFoundError:
-            self.send_error(404, f"File {template_name} not found")
-            return None
+        with open(f'view/{template_name}', 'r', encoding='utf-8') as file:
+            html_content = file.read()
+            for key, value in context.items():
+                html_content = html_content.replace(f"{{{{{key}}}}}", value)
+            return html_content
 
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
@@ -24,63 +21,51 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            
-            # Generar la lista de clientes
-            usuarios = UserControlador.get_user()
-            #id,nombre,email,telefono,direccion,apellido,rut
+
+            usuarios = controlador.get_user()
             lista_usuarios = "".join(
-                f"<tr>"
-                f"<td>{usuario.id}</td>"
-                f"<td>{usuario.nombre}</td>"
-                f"<td>{usuario.email}</td>"
-                f"<td>"
-                f"<a href='/delete?id={usuario.id}'>Eliminar</a> | "
-                f"<a href='/update?id={usuario.id}'>Actualizar</a>"
-                f"</td>"
-                f"</tr>"
+                f"<li>{usuario.id} {usuario.nombre} {usuario.email}"
+                f"<a href='/delete?id={usuario.id}'> Eliminar </a> "
+                f"<a href='/update?id={usuario.id}'> Actualizar </a> </li>"
                 for usuario in usuarios
             )
-            
 
-            #Renderizamos el template con la lista de clientes
-            html_content = self.render_template('index.html', {'usuarios': lista_usuarios} )
-            self.wfile.write(html_content.encode())
+            # Renderizar el template con la lista de usuarios
+            html_content = self.render_template('index.html', {'usuarios': lista_usuarios})
+            self.wfile.write(html_content.encode('utf-8'))
             return
-        
-        elif path == "/update":
-            query = urllib.parse.parse_qs(parsed_path.query)
-            id = int(query['id'][0])
-            user = next((u for u in UserControlador.get_user() if u.id == id ), None)
-            #id,nombre,email,telefono,direccion,apellido,rut
-            if user:
-                self.send_response(200)
-                self.send_header('content-type', 'text/html')
-                self.end_headers()
 
-                html_content = self.render_template('update.html', {
-                    'user_id': str(user.id),
-                    'user_name': user.nombre,
-                    'user_email': user.email,
-                    'user_password': user.password,
-                    'user_fecha_creacion': user.fecha_creacion
-                })
-
-                self.wfile.write(html_content.encode())
-            else:
-                self.send_response(404)
-                self.end_headers()
-            return
-        
         elif path == "/delete":
             query = urllib.parse.parse_qs(parsed_path.query)
             id = int(query['id'][0])
-            UserControlador.delete_user(id)
+            controlador.delete_user(id)
 
             self.send_response(303)
             self.send_header('Location', '/')
             self.end_headers()
+
+        elif path == "/update":
+            query = urllib.parse.parse_qs(parsed_path.query)
+            id = int(query['id'][0])
+            usuario = next((u for u in controlador.get_user() if u.id == id), None)
+
+            if usuario:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                # Renderizar el template de actualización con los datos del usuario en update.html
+                html_content = self.render_template('update.html', {
+                    'usuario_id': str(usuario.id),
+                    'usuario_name': usuario.nombre,
+                    'usuario_email': usuario.email
+                })
+                self.wfile.write(html_content.encode('utf-8'))
+            else:
+                self.send_response(404)
+                self.end_headers()
             return
-        
+
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
         path = parsed_path.path
@@ -89,15 +74,13 @@ class MyHandler(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length).decode('utf-8')
         parsed_data = urllib.parse.parse_qs(post_data)
 
-        #id,nombre,email,telefono,direccion,apellido,rut
-
         if path == "/":
-            id = len(UserControlador.get_user())
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
-
-            UserControlador.add_user(id +1, nombre, email, password, fecha_creacion)
-            print(UserControlador.get_user())
+            password = parsed_data['password'][0]
+            fecha_creacion = "2023-10-01"  # Puedes cambiar esto a la fecha actual
+            id = len(controlador.get_user()) + 1
+            controlador.add_user(id, nombre, email, password, fecha_creacion)
 
         elif path == "/update":
             id = int(parsed_data['id'][0])
@@ -105,8 +88,7 @@ class MyHandler(BaseHTTPRequestHandler):
             email = parsed_data['email'][0]
             password = parsed_data['password'][0]
             fecha_creacion = parsed_data['fecha_creacion'][0]
-
-            UserControlador.update_user(id, nombre, email, password, fecha_creacion)
+            controlador.update_user(id, nombre, email, password, fecha_creacion)
 
         self.send_response(303)
         self.send_header('Location', '/')
