@@ -26,7 +26,7 @@ class MyHandler(BaseHTTPRequestHandler):
             lista_usuarios = "".join(
                 f"<li>{usuario.id} {usuario.nombre} {usuario.email}"
                 f"<a href='/delete?id={usuario.id}'> Eliminar </a> "
-                f"<a href='/updateUsuario?id={usuario.id}'> Actualizar </a> </li>"
+                f"<a href='/update?id={usuario.id}'> Actualizar </a> </li>"
                 for usuario in usuarios
             )
 
@@ -43,6 +43,7 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(303)
             self.send_header('Location', '/')
             self.end_headers()
+            
 
         elif path == "/update":
             query = urllib.parse.parse_qs(parsed_path.query)
@@ -65,7 +66,12 @@ class MyHandler(BaseHTTPRequestHandler):
             else:
                 self.send_response(404)
                 self.end_headers()
-            return
+                self.wfile.write(b"User not found")
+        else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Missing 'id' parameter")
+        return
 
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
@@ -79,16 +85,20 @@ class MyHandler(BaseHTTPRequestHandler):
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
             password = parsed_data['password'][0]
-            fecha_creacion = "2023-10-01"  # Puedes cambiar esto a la fecha actual
             id = len(controlador.get_user()) + 1
-            controlador.add_user(id, nombre, email, password, fecha_creacion)
+            controlador.add_user(id, nombre, email, password)
 
         elif path == "/update":
             id = int(parsed_data['id'][0])
             nombre = parsed_data['nombre'][0]
             email = parsed_data['email'][0]
             password = parsed_data['password'][0]
-            controlador.update_user(id, nombre, email, password, fecha_creacion)
+            controlador.update_user(id, nombre, email, password)
+
+            self.send_response(303)
+            self.send_header('Location', '/')
+            self.end_headers()
+            return
 
         elif path == "/login":
             email = parsed_data['email'][0]
@@ -96,7 +106,7 @@ class MyHandler(BaseHTTPRequestHandler):
             
             if controlador.authenticate_user(email, password):
                 self.send_response(200)
-                self.send_header('Content-type', 'text/html')
+                self.send_header('Location', '/Publicaciones')
                 self.end_headers()
                 self.wfile.write(b"Login successful")
             else:
