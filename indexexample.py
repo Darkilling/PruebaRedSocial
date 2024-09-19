@@ -1,9 +1,9 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import urllib.parse
-from controller.user_controller import UserControlador
+from controller.client_controller import ClienteController
 
-clienteControlador = UserControlador() #Creamos Obejto controlador de cliente
+clienteControlador = ClienteController() #Creamos Obejto controlador de cliente
 
 class MyHandler(BaseHTTPRequestHandler):
 
@@ -24,31 +24,35 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             # Generar la lista de clientes
-            usuarios = UserControlador.get_user()
+            clientes = clienteControlador.get_client()
             #id,nombre,email,telefono,direccion,apellido,rut
-            lista_usuarios = "".join(
+            lista_clientes = "".join(
                 f"<tr>"
-                f"<td>{usuario.id}</td>"
-                f"<td>{usuario.nombre}</td>"
-                f"<td>{usuario.email}</td>"
+                f"<td>{cliente.id}</td>"
+                f"<td>{cliente.rut}</td>"
+                f"<td>{cliente.nombre}</td>"
+                f"<td>{cliente.apellido}</td>"
+                f"<td>{cliente.email}</td>"
+                f"<td>{cliente.telefono}</td>"
+                f"<td>{cliente.direccion}</td>"
                 f"<td>"
-                f"<a href='/delete?id={usuario.id}'>Eliminar</a> | "
-                f"<a href='/update?id={usuario.id}'>Actualizar</a>"
+                f"<a href='/delete?id={cliente.id}'>Eliminar</a> | "
+                f"<a href='/update?id={cliente.id}'>Actualizar</a>"
                 f"</td>"
                 f"</tr>"
-                for usuario in usuarios
+                for cliente in clientes
             )
             
 
             #Renderizamos el template con la lista de clientes
-            html_content = self.render_template('index.html', {'usuarios': lista_usuarios} )
+            html_content = self.render_template('index.html', {'clientes': lista_clientes} )
             self.wfile.write(html_content.encode())
             return
         
         elif path == "/update":
             query = urllib.parse.parse_qs(parsed_path.query)
             id = int(query['id'][0])
-            user = next((u for u in UserControlador.get_client() if u.id == id ), None)
+            client = next((c for c in clienteControlador.get_client() if c.id == id ), None)
             #id,nombre,email,telefono,direccion,apellido,rut
             if client:
                 self.send_response(200)
@@ -56,11 +60,13 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
 
                 html_content = self.render_template('update.html', {
-                    'user_id': str(user.id),
-                    'user_name': user.nombre,
-                    'user_email': user.email,
-                    'user_apell': user.password,
-                    'user_fecha': user.fecha_creacion
+                    'client_id': str(client.id),
+                    'client_name': client.nombre,
+                    'client_email': client.email,
+                    'client_fono': client.telefono,
+                    'client_direc': client.direccion,
+                    'client_apell': client.apellido,
+                    'client_rut': client.rut
                 })
 
                 self.wfile.write(html_content.encode())
@@ -72,7 +78,7 @@ class MyHandler(BaseHTTPRequestHandler):
         elif path == "/delete":
             query = urllib.parse.parse_qs(parsed_path.query)
             id = int(query['id'][0])
-            UserControlador.delete_user(id)
+            clienteControlador.delete_client(id)
 
             self.send_response(303)
             self.send_header('Location', '/')
