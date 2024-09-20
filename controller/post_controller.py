@@ -6,16 +6,16 @@ class PublicacionController:
         self.publicaciones = []
 
     def agregar_publicacion(self, usuario_id, contenido):
-        if not usuario_id  or not contenido:
+        if not usuario_id or not contenido:
             raise ValueError("Todos los campos son obligatorios")
         if len(contenido) > 500:
             raise ValueError("La publicación no puede exceder los 500 caracteres")
         
         id = len(self.publicaciones) + 1
         fecha = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        publicacion = Publicacion(id, usuario_id,  contenido, fecha)
+        publicacion = Publicacion(id, usuario_id, contenido, fecha)
         self.publicaciones.append(publicacion)
-        print(f"Publicación agregada: {publicacion}") 
+        print(f"Publicación agregada: {publicacion}")
 
     def listar_publicaciones(self):
         return self.publicaciones
