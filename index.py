@@ -34,6 +34,25 @@ class MyHandler(BaseHTTPRequestHandler):
             html_content = self.render_template('index.html', {'usuarios': lista_usuarios})
             self.wfile.write(html_content.encode('utf-8'))
             return
+        
+
+        elif path == "/list":
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+
+            usuarios = controlador.get_user()
+            lista_usuarios = "".join(
+                f"<li>{usuario.id} {usuario.nombre} {usuario.email}</li>"
+                for usuario in usuarios
+
+            )
+                # Renderizar el template con la lista de usuarios
+            html_content = self.render_template('ListaUsuarios.html', {'usuarios': lista_usuarios})
+            self.wfile.write(html_content.encode('utf-8'))
+            return
+        
+            
 
         elif path == "/delete":
             query = urllib.parse.parse_qs(parsed_path.query)
