@@ -24,7 +24,8 @@ class UsuarioController:
         return False
     
     def authenticate_user(self, email, password):
-        for usuario in self.usuarios:
-            if usuario.email == email and usuario.password == password:
-                return True
-        return False
+        user = next((u for u in self.usuarios if u.email == email and u.password == password), None)
+        return user is not None
+
+    def get_user_by_email(self, email):
+        return next((u for u in self.usuarios if u.email == email), None)

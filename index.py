@@ -6,6 +6,7 @@ from controller.post_controller import PublicacionController
 
 controlador = UsuarioController()  # Creamos Objeto controlador de usuario
 controlador_publicaciones = PublicacionController()  # Creamos Objeto controlador de publicaciones
+sessions = {}  # Diccionario para almacenar las sesiones de los usuarios autenticados
 
 class MyHandler(BaseHTTPRequestHandler):
     def render_template(self, template_name, context):
@@ -67,7 +68,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
             # Renderizar el template con la lista de publicaciones
         
-            html_content = self.render_template('Publicaciones.html', {})
+            html_content = self.render_template('Publicaciones.html', {'publicaciones': lista_publicaciones})
             self.wfile.write(html_content.encode('utf-8'))
             return
         
@@ -81,7 +82,6 @@ class MyHandler(BaseHTTPRequestHandler):
             self.send_response(303)
             self.send_header('Location', '/')
             self.end_headers()
-            
 
         elif path == "/update":
             query = urllib.parse.parse_qs(parsed_path.query)
@@ -105,11 +105,21 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
                 self.wfile.write(b"User not found")
+        
+        elif path == "/logout":
+            session_id = self.headers.get('Cookie')
+            if session_id in sessions:
+                del sessions[session_id]
+            self.send_response(303)
+            self.send_header('Location', '/')
+            self.end_headers()
         else:
-                self.send_response(400)
-                self.end_headers()
-                self.wfile.write(b"Missing 'id' parameter")
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Missing 'id' parameter")
         return
+    
+        
 
     def do_POST(self):
         parsed_path = urllib.parse.urlparse(self.path)
@@ -139,6 +149,7 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write("La contraseña debe tener al menos 8 caracteres".encode('utf-8'))
                 return
+            
 
         elif path == "/update":
             id = int(parsed_data['id'][0])
@@ -181,8 +192,11 @@ class MyHandler(BaseHTTPRequestHandler):
                 return
 
             if controlador.authenticate_user(email, password):
+                session_id = str(len(sessions) + 1)
+                sessions[session_id] = email
                 self.send_response(303)
                 self.send_header('Location', '/list')
+                self.send_header('Set-Cookie', session_id)
                 self.end_headers()
             else:
                 self.send_response(401)
@@ -192,19 +206,31 @@ class MyHandler(BaseHTTPRequestHandler):
             return
 
         elif path == "/create_post":
-            usuario_id = parsed_data['usuario_id'][0]
-            contenido = parsed_data['contenido'][0]
-            fecha = parsed_data['fecha'][0]
+            session_id = self.headers.get('Cookie')
+            if session_id not in sessions:
+                self.send_response(303)
+                self.send_header('Location', '/login')
+                self.end_headers()
+                return
 
-            if len(contenido) > 500:
+            email = sessions[session_id]
+            usuario_autenticado = controlador.get_user_by_email(email)  # Método para obtener el usuario autenticado
+
+            contenido = parsed_data['contenido'][0]
+            usuario_id = usuario_autenticado.id
+            
+
+            try:
+                controlador_publicaciones.agregar_publicacion(usuario_id, contenido)
+                self.send_response(303)
+                self.send_header('Location', '/publicaciones')
+                self.end_headers()
+            except ValueError as e:
                 self.send_response(400)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write("La publicación no puede exceder los 500 caracteres".encode('utf-8'))
-                return
-
-            controlador_publicaciones.agregar_publicacion(usuario_id, contenido, fecha)
-
+                self.wfile.write(str(e).encode('utf-8'))
+            return
 
 
         self.send_response(303)
