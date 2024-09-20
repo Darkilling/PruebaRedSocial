@@ -107,6 +107,20 @@ class MyHandler(BaseHTTPRequestHandler):
             id = len(controlador.get_user()) + 1
             controlador.add_user(id, nombre, email, password)
 
+            if not email:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("El correo electrónico no puede estar vacío".encode('utf-8'))
+                return
+
+            if len(password) < 8:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("La contraseña debe tener al menos 8 caracteres".encode('utf-8'))
+                return
+
         elif path == "/update":
             id = int(parsed_data['id'][0])
             nombre = parsed_data['nombre'][0]
@@ -114,20 +128,43 @@ class MyHandler(BaseHTTPRequestHandler):
             password = parsed_data['password'][0]
             controlador.update_user(id, nombre, email, password)
 
-            self.send_response(303)
-            self.send_header('Location', '/')
-            self.end_headers()
-            return
+            if not email:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("El correo electrónico no puede estar vacío".encode('utf-8'))
+                return
+
+            if len(password) < 8:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("La contraseña debe tener al menos 8 caracteres".encode('utf-8'))
+                return
+
 
         elif path == "/login":
             email = parsed_data['email'][0]
             password = parsed_data['password'][0]
             
-            if controlador.authenticate_user(email, password):
-                self.send_response(200)
-                self.send_header('Location', '/Publicaciones')
+            if not email:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write(b"Login successful")
+                self.wfile.write("El correo electrónico no puede estar vacío".encode('utf-8'))
+                return
+
+            if len(password) < 8:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("La contraseña debe tener al menos 8 caracteres".encode('utf-8'))
+                return
+
+            if controlador.authenticate_user(email, password):
+                self.send_response(303)
+                self.send_header('Location', '/list')
+                self.end_headers()
             else:
                 self.send_response(401)
                 self.send_header('Content-type', 'text/html')
