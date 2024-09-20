@@ -1,17 +1,31 @@
-from models.client_model import *
+from models.publicacion_model import Publicacion
 
-class ClienteController:
+class PublicacionController:
     def __init__(self):
-        self.clientes = []
+        self.publicaciones = []
 
-    def get_client(self):
-        return self.clientes
+    def agregar_publicacion(self, usuario_id, contenido, fecha):
+        if len(contenido) > 500:
+            raise ValueError("La publicación no puede exceder los 500 caracteres")
 
-    def add_client(self, id, nombre, email):
-        client = Client(id, nombre, email) # Estructura del modelo
-        self.clientes.append(client)
+        nueva_publicacion = Publicacion(
+            id=len(self.publicaciones) + 1,
+            usuario_id=usuario_id,
+            contenido=contenido,
+            fecha=fecha
+        )
+        self.publicaciones.append(nueva_publicacion)
+
+    def listar_publicaciones(self):
+        return self.publicaciones
     
-    def delete_client(self, id):
+
+    
+
+
+
+
+    '''def delete_client(self, id):
         self.clientes = [client for client in self.clientes if client.id != id]
 
     def update_client(self, id, nombre, email):
@@ -20,4 +34,4 @@ class ClienteController:
                 cliente.nombre = nombre
                 cliente.email = email
                 return True
-        return False
+        return False'''

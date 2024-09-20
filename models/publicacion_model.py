@@ -1,4 +1,4 @@
-class publicacion
+class Publicacion:
 
     def __init__(self, id, likes, contenido, fecha_publicacion, usuario_id):
         self.id = id

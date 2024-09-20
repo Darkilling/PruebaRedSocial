@@ -2,8 +2,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import urllib.parse
 from controller.user_controller import UsuarioController
+from controller.post_controller import PublicacionController
 
 controlador = UsuarioController()  # Creamos Objeto controlador de usuario
+controlador_publicaciones = PublicacionController()  # Creamos Objeto controlador de publicaciones
 
 class MyHandler(BaseHTTPRequestHandler):
     def render_template(self, template_name, context):
@@ -49,6 +51,23 @@ class MyHandler(BaseHTTPRequestHandler):
             )
                 # Renderizar el template con la lista de usuarios
             html_content = self.render_template('ListaUsuarios.html', {'usuarios': lista_usuarios})
+            self.wfile.write(html_content.encode('utf-8'))
+            return
+        
+        elif path == "/publicaciones":
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+
+            publicaciones = controlador_publicaciones.listar_publicaciones()
+            lista_publicaciones = "".join(
+                f"<li>{publicacion.id} {publicacion.usuario_id} {publicacion.contenido} {publicacion.fecha}</li>"
+                for publicacion in publicaciones
+            )
+
+            # Renderizar el template con la lista de publicaciones
+        
+            html_content = self.render_template('Publicaciones.html', {})
             self.wfile.write(html_content.encode('utf-8'))
             return
         
@@ -169,7 +188,23 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.send_response(401)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write(b"Login failed")
+                self.wfile.write("Login failed".encode('utf-8'))
+            return
+
+        elif path == "/create_post":
+            usuario_id = parsed_data['usuario_id'][0]
+            contenido = parsed_data['contenido'][0]
+            fecha = parsed_data['fecha'][0]
+
+            if len(contenido) > 500:
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write("La publicación no puede exceder los 500 caracteres".encode('utf-8'))
+                return
+
+            controlador_publicaciones.agregar_publicacion(usuario_id, contenido, fecha)
+
 
 
         self.send_response(303)
