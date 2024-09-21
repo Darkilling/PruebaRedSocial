@@ -18,10 +18,14 @@
         </form>
     </div>
 
-    <h1>Lista Publicaciones</h1>
-    <ul>
-        {{publicaciones}}
-    </ul>
+    <div class="container mt-5">
+        <h1>Lista Publicaciones</h1>
+        <ul class="list-group">
+            {{publicaciones}}
+        </ul>
+    </div>
+
+    <a href="/" class="btn btn-secondary mt-3">Volver</a>
 
     <script>
         function validatePostForm() {

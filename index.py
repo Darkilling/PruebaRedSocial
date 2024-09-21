@@ -62,7 +62,9 @@ class MyHandler(BaseHTTPRequestHandler):
 
             publicaciones = controlador_publicaciones.listar_publicaciones()
             lista_publicaciones = "".join(
-                f"<li>{publicacion.id} {publicacion.usuario_id} {publicacion.contenido} {publicacion.fecha}</li>"
+                f"<li>{publicacion.id} {publicacion.usuario_id} {publicacion.contenido} {publicacion.fecha} "
+                f"<a href='/delete_publicacion?id={publicacion.id}' class='btn btn-danger btn-sm'> Eliminar </a> "
+                f"<a href='/update_publicacion?id={publicacion.id}' class='btn btn-warning btn-sm'> Actualizar </a> </li>"
                 for publicacion in publicaciones
             )
 
@@ -72,6 +74,30 @@ class MyHandler(BaseHTTPRequestHandler):
             self.wfile.write(html_content.encode('utf-8'))
             return
         
+        elif path == "/update_publicacion":
+            query = urllib.parse.parse_qs(parsed_path.query)
+            publicacion_id = query.get('id', [None])[0]
+
+            if publicacion_id:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+
+                # Renderizar el formulario de actualización
+                html_content = self.render_template('updatePublicaciones.html', {'id': publicacion_id})
+                self.wfile.write(html_content.encode('utf-8'))
+            return
+        
+        elif path == "/delete_publicacion":
+            query = urllib.parse.parse_qs(parsed_path.query)
+            publicacion_id = query.get('id', [None])[0]
+
+            if publicacion_id:
+                controlador_publicaciones.eliminar_publicacion(int(publicacion_id))
+                self.send_response(302)
+                self.send_header('Location', '/list')
+                self.end_headers()
+            return
             
 
         elif path == "/delete":
@@ -171,6 +197,28 @@ class MyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write("La contraseña debe tener al menos 8 caracteres".encode('utf-8'))
                 return
+            
+
+        if path == "/update_publicacion":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            post_params = urllib.parse.parse_qs(post_data)
+
+            # Verificar si 'id' está en post_params
+            if 'id' in post_params and 'contenido' in post_params:
+                publicacion_id = int(post_params['id'][0])
+                contenido = post_params['contenido'][0]
+
+                controlador_publicaciones.actualizar_publicacion(publicacion_id, contenido)
+
+                self.send_response(302)
+                self.send_header('Location', '/publicaciones')
+                self.end_headers()
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Faltan parametros en la solicitud")
+            return
 
 
         elif path == "/login":

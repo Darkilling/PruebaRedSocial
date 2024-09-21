@@ -6,6 +6,17 @@
     <title>Document</title>
 </head>
 <body>
+    <div class="container">
+        <h1>Actualizar Publicación</h1>
+        <form action="/update_publicacion" method="POST">
+            <input type="hidden" name="id" value="{{id}}">
+            <div class="mb-3">
+                <label for="contenido" class="form-label">Nuevo Contenido:</label>
+                <textarea name="contenido" id="contenido" class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Actualizar</button>
+        </form>
+    </div>
     
 </body>
 </html>

@@ -17,11 +17,22 @@ class PublicacionController:
         self.publicaciones.append(publicacion)
         print(f"Publicación agregada: {publicacion}")
 
+
+    def actualizar_publicacion(self, id, contenido):
+        for publicacion in self.publicaciones:
+            if publicacion.id == id:
+                publicacion.contenido = contenido
+                break    
+
+
     def listar_publicaciones(self):
         return self.publicaciones
     
     def eliminar_publicacion(self, id):
         self.publicaciones = [p for p in self.publicaciones if p.id != id]
+
+
+
 
     '''def actualizar_publicacion(self, id, contenido):
         for publicacion in self.publicaciones:
